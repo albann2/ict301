@@ -29,6 +29,44 @@
           font-size: 3.5rem;
         }
       }
+      
+      .modal {
+            display: none; /* Par défaut, la fenêtre modale est cachée */
+            position: fixed; /* Position fixe pour la superposer au reste du contenu */
+            z-index: 1; /* Priorité d'affichage */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Ajout de défilement si nécessaire */
+            background-color: rgba(135, 154, 231, 0.4); /* Fond semi-transparent */
+        }
+
+        /* Style pour la boîte modale */
+        .modal-content {
+            background-color: #c9cbd1;
+            margin: 15% auto; /* Centrer la boîte modale */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%; /* Largeur de la boîte modale */
+        }
+
+        /* Style pour le bouton de fermeture */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        /* Style pour le bouton de fermeture au survol */
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+      
     </style>
 
     
@@ -62,38 +100,44 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="ue.html">
               <span data-feather="file"></span>
-              Orders
+              U.E
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="delegue.html">
               <span data-feather="shopping-cart"></span>
-              Products
+              Delegue
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="classe.html">
               <span data-feather="users"></span>
-              Customers
+              Classe
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="etudiant.html">
               <span data-feather="bar-chart-2"></span>
-              Reports
+              Etudiant
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="fiche.html">
               <span data-feather="layers"></span>
-              Integrations
+              Fiche
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="filiere.html">
+              <span data-feather="layers"></span>
+              Filiere
             </a>
           </li>
         </ul>
 
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <!--<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
           <span>Saved reports</span>
           <a class="link-secondary" href="#" aria-label="Add a new report">
             <span data-feather="plus-circle"></span>
@@ -124,17 +168,23 @@
               Year-end sale
             </a>
           </li>
-        </ul>
+        </ul>-->
       </div>
     </nav>
+    
+
+    
+
+    
+
+
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+        <h1 class="h2">Liste des etudiants</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openModal()">Importation</button>
           </div>
           <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
             <span data-feather="calendar"></span>
@@ -143,18 +193,69 @@
         </div>
       </div>
 
-      <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+      <div id="modal" class="modal-cont" style="display: none;">
+
+        <!-- Contenu de la fenêtre modale -->
+        <div class="modal-content">
+          <span class="close" onclick="closeModal()">&times;</span> <!-- Bouton de fermeture -->
+          <h2>Importer un fichier .xls</h2>
+          <!-- Formulaire pour importer un fichier -->
+          <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="fileToUpload" id="fileToUpload">
+            <br><br>
+            <button type="button" onclick="importExcel()">Importer</button>
+            <button type="button" onclick="closeModal()">Annuler</button>
+        </form>
+        </div>
+      
+      </div>
+      <script>
+        function openModal(){
+          document.getElementById("modal").style.display= "block" ;
+        }
+        function closeModal(){
+          document.getElementById("modal").style.display= "none";
+        }
+  
+        function importExcel() {
+        var fileInput = document.getElementById('fileToUpload');
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          var data = event.target.result;
+          var workbook = XLSX.read(data, {type: 'binary'});
+          var sheetName = workbook.SheetNames[0];
+          var sheet = workbook.Sheets[sheetName];
+          var jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+          var tbody = document.querySelector('#studentTable tbody');
+          tbody.innerHTML = ''; // Clear existing table data
+          for (var i = 1; i < jsonData.length; i++) { // Start from index 1 to skip header
+              var row = document.createElement('tr');
+              for (var j = 0; j < jsonData[i].length; j++) {
+                  var cell = document.createElement('td');
+                  cell.textContent = jsonData[i][j];
+                  row.appendChild(cell);
+              }
+              tbody.appendChild(row);
+          }
+          closeModal(); // Fermer la fenêtre modale après l'importation
+      };
+        reader.readAsBinaryString(file);
+      }
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+      <canvas class="my-4 w-100" id="myChart" width="900" height="10"></canvas>
 
       <h2>Section title</h2>
       <div class="table-responsive">
         <table class="table table-striped table-sm">
           <thead>
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
-              <th scope="col">Header</th>
+              <th scope="col">Numero</th>
+              <th scope="col">Matricule</th>
+              <th scope="col">Nom et prenom</th>
+              <th scope="col">Filiere</th>
+              <th scope="col">Niveau</th>
             </tr>
           </thead>
           <tbody>
